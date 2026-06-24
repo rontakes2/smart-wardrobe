@@ -1,0 +1,871 @@
+/* --- Global Variables & Theme Control --- */
+:root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+}
+
+/* Dark Mode Overrides */
+body.dark-mode {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+/* Admin Theme Overrides (Purple/White) */
+body.admin-theme {
+    --bg: #faf5ff;
+    --surface: #ffffff;
+    --border: #e9e4f0;
+    --accent: #8b5cf6;
+    --accent-hover: #7c3aed;
+    --shadow: 0 4px 24px rgba(139, 92, 246, 0.04);
+}
+
+body.admin-theme.dark-mode {
+    --bg: #1e1b4b; /* Deep purple dark mode background */
+    --surface: #2e1065;
+    --border: #4c1d95;
+    --text-main: #f8fafc;
+    --text-muted: #c4b5fd;
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Base Resets & Typography --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    font-weight: var(--font-weight-light);
+}
+
+/* FIXED: Paint the entire browser window */
+html {
+    background-color: var(--bg);
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    background-color: var(--bg);
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    /* Prevents bottom margin collapse from child elements */
+    padding-bottom: 1px; 
+}
+
+h1, h2, h3, h4 {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-main);
+}
+
+/* Ensure core containers adapt smoothly */
+.form-container, .dashboard-card, .outfit-card, .timeline-content, .wardrobe-card { 
+    background: var(--surface); 
+    border-color: var(--border); 
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease; 
+}
+
+/* --- Form Elements Theme Adaptation --- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="file"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    background-color: var(--bg); 
+    color: var(--text-main);     
+    border: 1px solid var(--border); 
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Minimalist Inputs Overrides (if used instead of box inputs) */
+input.minimal-input {
+    padding: 12px 0;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); 
+}
+
+input.minimal-input:focus {
+    box-shadow: none;
+    border-bottom-color: var(--accent);
+}
+
+/* Base styling for labels */
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-main);
+}
+
+/* Primary Button Styling */
+button, 
+input[type="submit"],
+.btn-primary,
+.module-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 24px;
+    background-color: var(--accent);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: var(--font-weight-medium);
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: filter 0.2s ease, transform 0.1s ease, background-color 0.3s ease;
+}
+
+button:hover, 
+input[type="submit"]:hover,
+.module-link:hover {
+    background-color: var(--accent-hover);
+}
+
+button:active, 
+input[type="submit"]:active,
+.module-link:active {
+    transform: scale(0.98);
+}
+
+/* Select and File Inputs */
+.minimal-select, .minimal-file {
+    width: 100%;
+    padding: 12px 0;
+    margin-bottom: 24px;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    cursor: pointer;
+    border-radius: 0;
+}
+
+.minimal-select:focus {
+    box-shadow: none;
+    border-bottom-color: var(--accent);
+}
+
+/* --- Top Navigation Layout --- */
+.topnav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+    height: 54px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.has-topnav {
+    padding-top: 54px;
+}
+
+.topnav .brand {
+    font-weight: var(--font-weight-medium);
+    letter-spacing: -0.01em;
+}
+
+.nav-links {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 24px; 
+}
+
+.nav-links a {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: var(--font-weight-medium);
+    font-size: 0.9rem;
+    white-space: nowrap; 
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.nav-links a:hover {
+    color: var(--accent);
+}
+
+.nav-links a.logout-btn {
+    color: #ef4444;
+}
+
+.nav-links a.logout-btn:hover {
+    color: #dc2626;
+}
+
+/* --- Layout Containers --- */
+.form-container, .dashboard-container, .admin-container {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 40px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.form-container {
+    max-width: 420px;
+}
+
+.form-container h2 {
+    margin-bottom: 32px;
+    font-size: 1.75rem;
+    text-align: center;
+}
+
+/* Profile Layout Styles */
+.profile-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+}
+@media (max-width: 768px) { .profile-layout { grid-template-columns: 1fr; } }
+
+/* --- Dashboard Grid Layout --- */
+.dashboard-intro {
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 48px;
+    font-size: 0.95rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.dashboard-card {
+    padding: 32px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.dashboard-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow);
+}
+
+.dashboard-card h3 {
+    margin-bottom: 12px;
+    font-size: 1.15rem;
+}
+
+.dashboard-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 28px;
+    line-height: 1.6;
+}
+
+/* --- Tables --- */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 24px;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.admin-table th, .admin-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+}
+
+.admin-table th {
+    color: var(--text-muted);
+    font-weight: var(--font-weight-medium);
+}
+
+.delete-btn {
+    background: transparent;
+    color: #ef4444;
+    padding: 0;
+    width: auto;
+}
+
+.delete-btn:hover {
+    background: transparent;
+    color: #dc2626;
+    text-decoration: underline;
+}
+
+/* Form Messages */
+.form-error {
+    margin-top: 16px;
+    color: #ef4444;
+    font-size: 0.85rem;
+}
+.message-success { color: #10b981; margin-bottom: 16px; font-size: 0.9rem; }
+.message-error { color: #ef4444; margin-bottom: 16px; font-size: 0.9rem; }
+.form-note { margin-top: 24px; font-size: 0.85rem; color: var(--text-muted); text-align: center; }
+.form-note a { color: var(--accent); text-decoration: none; }
+
+/* --- Wardrobe Display Grid --- */
+.wardrobe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.wardrobe-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.3s ease;
+}
+
+.wardrobe-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+    border-color: var(--accent);
+}
+
+.wardrobe-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--bg); /* Adapts perfectly to dark/light mode */
+}
+
+.wardrobe-info {
+    padding: 16px;
+    text-align: center;
+}
+
+.wardrobe-info h4 {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(59, 130, 246, 0.1); /* Transparent blue works well on light & dark */
+    color: var(--accent);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-medium);
+}
+
+/* --- Outfit Builder Layout --- */
+.outfit-details {
+    max-width: 600px;
+    margin: 0 auto 40px;
+}
+
+.category-section {
+    margin-bottom: 40px;
+}
+
+.category-title {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
+/* Selectable Image Grid (Visual Checkboxes) */
+.selectable-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+}
+
+.selectable-item {
+    cursor: pointer;
+    display: block;
+    text-align: center;
+}
+
+.selectable-item input[type="checkbox"] {
+    display: none; 
+}
+
+.selectable-item .img-wrapper {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.selectable-item .img-bg {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--bg); /* Adapts to theme */
+    transition: transform 0.3s ease;
+}
+
+.selectable-item .selection-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(59, 130, 246, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.selection-overlay .checkmark {
+    background: var(--accent);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: scale(0.5);
+    transition: transform 0.2s ease;
+}
+
+/* Checked State Styles */
+.selectable-item input[type="checkbox"]:checked ~ .img-wrapper {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.selectable-item input[type="checkbox"]:checked ~ .img-wrapper .img-bg {
+    transform: scale(1.05); 
+}
+
+.selectable-item input[type="checkbox"]:checked ~ .img-wrapper .selection-overlay {
+    opacity: 1;
+}
+
+.selectable-item input[type="checkbox"]:checked ~ .img-wrapper .checkmark {
+    transform: scale(1);
+}
+
+.item-label {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+}
+
+.selectable-item input[type="checkbox"]:checked ~ .item-label {
+    color: var(--accent);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Divider for external integrations */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 24px 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border);
+}
+
+.divider span {
+    padding: 0 16px;
+    font-weight: var(--font-weight-medium);
+}
+
+/* Button Groups & Outlines */
+.btn-group {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+    background: var(--bg); /* Fixed from hardcoded light gray */
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: none;
+    transform: translateY(0);
+}
+
+/* --- Git-Style Timeline Components --- */
+.timeline-container {
+    background: transparent;
+}
+
+.git-timeline {
+    position: relative;
+    padding-left: 28px;
+}
+
+/* The vertical "branch" line */
+.git-timeline::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    bottom: 0;
+    left: 7px; 
+    width: 2px;
+    background: var(--border);
+    border-radius: 2px;
+}
+
+.timeline-entry {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.timeline-entry:last-child {
+    margin-bottom: 0;
+}
+
+/* The "Commit" Dots */
+.timeline-node {
+    position: absolute;
+    left: -27px; 
+    top: 14px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--bg); 
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
+    z-index: 2;
+}
+
+/* Color code the nodes based on activity type */
+.timeline-node.upload { background: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+.timeline-node.outfit { background: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,0.15); }
+.timeline-node.login { background: #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,0.15); }
+.timeline-node.admin { background: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,0.15); }
+
+/* The "Commit" Message Box */
+.timeline-content {
+    background: var(--surface); /* Fixed from #ffffff */
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.3s ease;
+}
+
+.timeline-content:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow);
+    transform: translateX(4px);
+}
+
+.timeline-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.timeline-user {
+    font-weight: var(--font-weight-medium);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+}
+
+.timeline-desc {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* --- Premium Dashboard Layout --- */
+.dashboard-wrapper {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 48px;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Vertical Sidebar */
+.premium-header {
+    margin-bottom: 32px;
+    animation: fadeInDown 0.5s ease-out;
+}
+.premium-greeting {
+    font-size: 1.8rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    color: var(--text-main);
+}
+.premium-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 300;
+}
+.metrics-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.metric-card:hover {
+    transform: translateX(4px);
+    border-color: var(--accent);
+}
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(120, 120, 120, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--text-main);
+}
+.metric-data h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 0 0 4px 0;
+    font-weight: 500;
+}
+.metric-data span {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1;
+}
+
+/* Shopping Cart Sync Module */
+.import-module {
+    background: linear-gradient(145deg, var(--surface) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid var(--accent);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+}
+.import-module::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 4px;
+    background: linear-gradient(90deg, #4285F4, #a855f7, #ef4444);
+}
+.import-input-wrapper {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: nowrap; /* Forces them to stay on the same line */
+    align-items: stretch;
+}
+.import-input {
+    flex: 1;
+    padding: 14px 20px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-family: inherit;
+    min-width: 0; /* Prevents input from blowing out flex bounds */
+}
+.import-btn {
+    background: var(--text-main);
+    color: var(--bg);
+    border: none;
+    padding: 0 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap; /* Prevents button text from wrapping */
+}
+.import-btn:hover { opacity: 0.9; }
+
+/* Workflow Grid */
+.workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+}
+.workflow-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+.workflow-btn i { font-size: 1.5rem; margin-bottom: 12px; color: var(--text-muted); }
+.workflow-btn:hover { background: var(--bg); border-style: solid; border-color: var(--accent); color: var(--accent); }
+.workflow-btn:hover i { color: var(--accent); }
+
+/* Recent Ribbon */
+.recent-ribbon { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px; scrollbar-width: thin; }
+.recent-item-card { flex: 0 0 140px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
+.recent-item-img { height: 140px; width: 100%; background-size: cover; background-position: center; background-color: var(--bg); }
+.recent-item-name { padding: 12px; font-size: 0.8rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; color: var(--text-main); }
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Make it responsive so it stacks ONLY on small phone screens */
+@media (max-width: 768px) {
+    .dashboard-wrapper { grid-template-columns: 1fr; }
+    .import-input-wrapper { flex-wrap: wrap; }
+    .import-btn { width: 100%; padding: 14px 20px; }
+}
+
+/* =========================================
+   PREMIUM GLASS MODE (3-Way Theme Override)
+   ========================================= */
+html.glass-mode, body.glass-mode {
+    background-color: #0f172a !important;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(239, 68, 68, 0.1) 0px, transparent 50%) !important;
+    background-attachment: fixed !important;
+    color: #ffffff !important;
+}
+
+body.glass-mode {
+    --bg: transparent;
+    --surface: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
+    --text-main: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --accent: #a855f7;
+}
+
+/* Glassify the main structural elements */
+.glass-mode .topnav,
+.glass-mode .metric-card,
+.glass-mode .import-module,
+.glass-mode .workflow-btn,
+.glass-mode .recent-item-card,
+.glass-mode .settings-card,
+.glass-mode .stat-badge,
+.glass-mode .chart-card,
+.glass-mode .activity-section {
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Inputs and Table adjusters */
+.glass-mode .import-input,
+.glass-mode .form-group input,
+.glass-mode .minimal-select,
+.glass-mode .compact-log-table th {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+.glass-mode .compact-log-table td {
+    border-bottom-color: rgba(255,255,255,0.05) !important;
+}
+
+/* Upgrade primary buttons to gradients in Glass Mode */
+.glass-mode .import-btn,
+.glass-mode .settings-card button[type="submit"] {
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6) !important;
+    color: white !important;
+    border: none !important;
+}
