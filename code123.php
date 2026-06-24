@@ -5,27 +5,28 @@ include 'includes/db.php';
 if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
 $userId = $_SESSION['user_id'];
-$username = $_SESSION['username'] ?? 'USER';
-$success = '';
-$error = '';
+$userGender = $_SESSION['user_gender'] ?? 'Unspecified';
+$themeClass = ($userGender === 'Female') ? 'theme-female' : 'theme-monochrome';
 
-$stmtUser = $pdo->prepare("SELECT profile_picture FROM users WHERE user_id = ?");
+$stmtUser = $pdo->prepare("SELECT username, profile_picture FROM users WHERE user_id = ?");
 $stmtUser->execute([$userId]);
 $userRow = $stmtUser->fetch();
-$pfpPath = !empty($userRow['profile_picture']) ? $userRow['profile_picture'] : 'https://ui-avatars.com/api/?name=' . urlencode($username) . '&background=000000&color=ffffff';
+$username = !empty($userRow['username']) ? $userRow['username'] : 'USER';
+$pfpPath = !empty($userRow['profile_picture']) ? $userRow['profile_picture'] : 'https://ui-avatars.com/api/?name=' . urlencode($username) . '&background=4f46e5&color=ffffff';
 
+$success = '';
+$error = '';
 $viewMode = $_GET['view'] ?? 'slab';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_outfit'])) {
     $outfitId = (int)$_POST['outfit_id'];
     $scheduleDate = $_POST['schedule_date'];
+    
     if ($outfitId > 0 && !empty($scheduleDate)) {
         try {
             $pdo->prepare("INSERT INTO calendar_schedule (user_id, outfit_id, schedule_date) VALUES (?, ?, ?)")->execute([$userId, $outfitId, $scheduleDate]);
             $success = "Outfit scheduled.";
-        } catch (PDOException $e) {
-            $error = "Date slot already occupied.";
-        }
+        } catch (PDOException $e) { $error = "Failed to schedule outfit."; }
     }
 }
 
@@ -79,69 +80,110 @@ function formatSlabDay($dateString) { return date('l', strtotime($dateString)); 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-panel: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-main: #e2e8f0;
+            --accent-solid: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-text: #ffffff;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+        }
+        body.theme-female {
+            --bg-main: #fdf4ff;
+            --text-main: #2e0219;
+            --text-muted: #83526c;
+            --border-main: #f3e8ff;
+            --accent-solid: #d946ef;
+            --accent-hover: #c026d3;
+        }
+        body.dark-mode {
+            --bg-main: #0a0a0a;
+            --bg-panel: #111111;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-main: #334155;
+            --accent-solid: #6366f1;
+            --accent-hover: #818cf8;
+        }
+        body.dark-mode.theme-female {
+            --bg-main: #120510;
+            --bg-panel: #1a0817;
+            --text-main: #fce7f3;
+            --text-muted: #f472b6;
+            --border-main: #4a1d3e;
+            --accent-solid: #e879f9;
+            --accent-hover: #f0abfc;
+            --accent-text: #000000;
+        }
+
         * { box-sizing: border-box; }
-        body { background-color: #fcfcfc; color: #000000; margin: 0; padding: 0; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
+        body { background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
         a { text-decoration: none; color: inherit; }
         button, input, select { font-family: inherit; }
 
-        .topnav { background: #ffffff; border-bottom: 1px solid #e5e5e5; padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; transition: background-color 0.3s, border-color 0.3s; }
-        .brand { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; text-transform: uppercase; color: #000; }
+        .topnav { background: var(--bg-panel); border-bottom: 1px solid var(--border-main); padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; transition: background-color 0.3s, border-color 0.3s; }
+        .brand { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; color: var(--text-main); }
         .nav-links { display: flex; gap: 32px; align-items: center; }
-        .nav-links a { font-weight: 500; font-size: 0.85rem; color: #666; transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.05em; }
-        .nav-links a:hover, .nav-links a.active { color: #000; font-weight: 700; }
-        
-        .nav-actions { display: flex; align-items: center; gap: 16px; margin-left: 16px; padding-left: 24px; border-left: 1px solid #e5e5e5; }
-        .nav-pfp { width: 28px; height: 28px; object-fit: cover; border: 1px solid #000; border-radius: 50%; }
-        .theme-btn { background: transparent; border: none; font-size: 0.85rem; font-weight: 700; color: #666; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.2s; }
-        .theme-btn:hover { color: #000; }
+        .nav-links a { font-weight: 600; font-size: 0.85rem; color: var(--text-muted); transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.05em; }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-solid); }
+        .nav-actions { display: flex; align-items: center; gap: 16px; margin-left: 16px; padding-left: 24px; border-left: 1px solid var(--border-main); }
+        .nav-pfp { width: 28px; height: 28px; object-fit: cover; border: 2px solid var(--accent-solid); border-radius: 50%; transition: transform 0.2s; }
+        .nav-pfp:hover { transform: scale(1.1); }
+        .theme-btn { background: transparent; border: none; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.2s; }
+        .theme-btn:hover { color: var(--accent-solid); }
 
-        .control-panel { background: #ffffff; border-bottom: 1px solid #e5e5e5; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; z-index: 90; transition: background-color 0.3s, border-color 0.3s; }
+        .control-panel { background: var(--bg-panel); border-bottom: 1px solid var(--border-main); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; z-index: 90; transition: background-color 0.3s, border-color 0.3s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .date-nav { display: flex; align-items: center; gap: 24px; }
-        .date-nav a { color: #666; font-size: 1rem; transition: color 0.2s; }
-        .date-nav a:hover { color: #000; }
-        .date-nav h2 { margin: 0; font-size: 1.1rem; font-weight: 600; min-width: 180px; text-align: center; letter-spacing: 0.05em; text-transform: uppercase; }
+        .date-nav a { color: var(--text-muted); font-size: 1.2rem; transition: color 0.2s; }
+        .date-nav a:hover { color: var(--accent-solid); }
+        .date-nav h2 { margin: 0; font-size: 1.2rem; font-weight: 800; min-width: 180px; text-align: center; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-main); }
 
-        .view-toggles { display: flex; gap: 8px; border: 1px solid #e5e5e5; padding: 4px; background: #fcfcfc; border-radius: 4px; }
-        .view-btn { padding: 6px 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; color: #666; transition: all 0.2s; }
-        .view-btn.active, .view-btn:hover { background: #000; color: #fff; }
+        .view-toggles { display: flex; gap: 8px; border: 1px solid var(--border-main); padding: 4px; background: var(--bg-main); border-radius: 6px; }
+        .view-btn { padding: 6px 16px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; color: var(--text-muted); transition: all 0.2s; border-radius: 4px; }
+        .view-btn.active, .view-btn:hover { background: var(--accent-solid); color: var(--accent-text); }
 
         .slot-form { display: flex; gap: 12px; align-items: center; margin: 0; }
-        .clean-input, .clean-select { padding: 8px 12px; border: 1px solid #ccc; font-size: 0.8rem; outline: none; background: #fff; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; transition: border-color 0.2s, background-color 0.3s; border-radius: 0; }
-        .clean-input:focus, .clean-select:focus { border-color: #000; }
-        .solid-btn { background: #000; color: #fff; border: 1px solid #000; padding: 8px 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 0; }
-        .solid-btn:hover { background: #fff; color: #000; }
+        .clean-input, .clean-select { padding: 10px 16px; border: 1px solid var(--border-main); font-size: 0.85rem; outline: none; background: var(--bg-main); color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; border-radius: 6px; transition: border-color 0.2s; }
+        .clean-input:focus, .clean-select:focus { border-color: var(--accent-solid); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .solid-btn { background: var(--accent-solid); color: var(--accent-text); border: none; padding: 10px 24px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; border-radius: 6px; }
+        .solid-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
 
-        .msg-bar { text-align: center; padding: 8px; font-size: 0.8rem; font-weight: 500; flex-shrink: 0; margin: 0; text-transform: uppercase; letter-spacing: 0.05em; }
-        .msg-success { background: #fff; color: #000; border-bottom: 1px solid #000; }
-        .msg-error { background: #000; color: #fff; }
+        .msg-bar { text-align: center; padding: 12px 40px; font-size: 0.85rem; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.05em; position: relative; border-bottom: 1px solid var(--border-main); }
+        .msg-success { background: #10b981; color: #fff; }
+        .msg-error { background: var(--danger); color: #fff; }
+        .close-msg { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #fff; font-size: 1.2rem; line-height: 1; transition: opacity 0.2s; font-weight: bold; opacity: 0.7; }
+        .close-msg:hover { opacity: 1; }
 
         /* SLAB VIEW */
-        .slab-stage { flex-grow: 1; width: 100%; max-width: 1100px; margin: 24px auto; padding: 0 24px 24px 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; position: relative; z-index: 10; min-height: 0; <?php if($viewMode === 'grid') echo 'display: none;'; ?> }
-        .slab { background: #fff; border: 1px solid #e5e5e5; height: 100%; display: flex; flex-direction: column; position: relative; transition: border-color 0.3s ease, background-color 0.3s ease; }
-        .slab-today { border-color: #000; box-shadow: 0 4px 20px rgba(0,0,0,0.04); z-index: 20; }
-        .slab-header { padding: 20px; text-align: center; border-bottom: 1px solid #e5e5e5; flex-shrink: 0; height: 90px; display: flex; flex-direction: column; justify-content: center; transition: border-color 0.3s; }
+        .slab-stage { flex-grow: 1; width: 100%; max-width: 1200px; margin: 40px auto; padding: 0 32px 32px 32px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; position: relative; z-index: 10; min-height: 0; <?php if($viewMode === 'grid') echo 'display: none;'; ?> }
+        .slab { background: var(--bg-panel); border: 1px solid var(--border-main); border-radius: 12px; height: 100%; display: flex; flex-direction: column; position: relative; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .slab-today { border-color: var(--accent-solid); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 20; transform: scale(1.02); border-width: 2px; }
+        .slab-header { padding: 24px; text-align: center; border-bottom: 2px solid var(--border-main); flex-shrink: 0; height: 100px; display: flex; flex-direction: column; justify-content: center; }
         .slab-date-default { transition: opacity 0.2s; }
-        .slab-title { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.15em; margin: 0 0 4px 0; }
-        .slab-today .slab-title { color: #000; }
-        .slab-day { font-size: 1rem; font-weight: 600; color: #000; margin: 0; letter-spacing: 0.02em; text-transform: uppercase; }
-        .dynamic-category { display: none; font-size: 0.8rem; font-weight: 700; color: #000; text-transform: uppercase; letter-spacing: 0.15em; }
+        .slab-title { font-size: 0.75rem; font-weight: 800; color: var(--accent-solid); text-transform: uppercase; letter-spacing: 0.15em; margin: 0 0 6px 0; }
+        .slab-day { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin: 0; letter-spacing: -0.02em; text-transform: uppercase; }
+        .dynamic-category { display: none; font-size: 0.85rem; font-weight: 800; color: var(--accent-solid); text-transform: uppercase; letter-spacing: 0.15em; }
 
-        .slab-center-rack { flex-grow: 1; padding: 24px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .slab-center-rack { flex-grow: 1; padding: 32px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
         .outfit-cluster { width: 100%; height: 100%; display: flex; flex-direction: column; }
-        .rack-images { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; align-content: start; flex-grow: 1; }
+        .rack-images { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; align-content: start; flex-grow: 1; }
         .rack-item-wrapper { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; aspect-ratio: 3/4; cursor: crosshair; }
-        .rack-item-img { width: 100%; height: 100%; max-height: 24vh; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08)); transition: transform 0.3s ease, filter 0.3s ease, opacity 0.3s ease; }
-        .outfit-cluster:hover .rack-item-img { opacity: 0.4; filter: grayscale(100%); }
-        .outfit-cluster .rack-item-wrapper:hover .rack-item-img { opacity: 1; filter: grayscale(0%) drop-shadow(0 10px 20px rgba(0,0,0,0.15)); transform: scale(1.05); z-index: 10; }
+        .rack-item-img { width: 100%; height: 100%; max-height: 28vh; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .outfit-cluster:hover .rack-item-img { opacity: 0.3; filter: grayscale(100%); }
+        .outfit-cluster .rack-item-wrapper:hover .rack-item-img { opacity: 1; filter: grayscale(0%) drop-shadow(0 20px 25px rgba(0,0,0,0.2)); transform: scale(1.15); z-index: 10; }
 
-        .slab-footer { padding: 16px 20px; border-top: 1px solid #e5e5e5; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; height: 60px; background: #fff; transition: background-color 0.3s, border-color 0.3s; }
+        .slab-footer { padding: 20px 24px; border-top: 1px solid var(--border-main); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; height: 70px; background: var(--bg-main); border-radius: 0 0 12px 12px; }
         .footer-text-container { flex-grow: 1; overflow: hidden; }
-        .default-outfit-name { font-size: 0.75rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .dynamic-item-name { display: none; font-size: 0.85rem; font-weight: 700; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .default-outfit-name { font-size: 0.85rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .dynamic-item-name { display: none; font-size: 0.9rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .event-del-btn { background: transparent; border: none; color: #ccc; cursor: pointer; font-size: 1rem; transition: color 0.2s; padding: 0 0 0 16px; }
-        .event-del-btn:hover { color: #000; }
-        .empty-rack { color: #ccc; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; }
+        .event-del-btn { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 1.2rem; transition: color 0.2s; padding: 0 0 0 16px; opacity: 0.6; }
+        .event-del-btn:hover { color: var(--danger-hover); opacity: 1; }
+        .empty-rack { color: var(--text-muted); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.5; }
 
         .is-focused .slab-date-default { display: none; }
         .is-focused .dynamic-category { display: block; }
@@ -149,43 +191,39 @@ function formatSlabDay($dateString) { return date('l', strtotime($dateString)); 
         .is-focused .dynamic-item-name { display: block; }
 
         /* GRID VIEW */
-        .grid-stage { width: 100%; max-width: 1200px; margin: 24px auto; padding: 0 24px 60px 24px; position: relative; z-index: 10; overflow-y: auto; <?php if($viewMode !== 'grid') echo 'display: none;'; ?> }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #e5e5e5; border: 1px solid #e5e5e5; width: 100%; transition: border-color 0.3s; }
-        .grid-header-cell { background: #fcfcfc; text-align: center; padding: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #666; transition: background-color 0.3s; }
-        .grid-cell { background: #fff; min-height: 140px; padding: 12px; display: flex; flex-direction: column; transition: background 0.2s; }
-        .grid-cell:hover { background: #f9f9f9; }
-        .grid-cell.today { background: #f5f5f5; box-shadow: inset 0 0 0 2px #000; }
-        .grid-date { font-size: 0.85rem; font-weight: 600; color: #000; margin-bottom: 8px; text-align: right; }
-        .grid-items { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; align-items: center; flex-grow: 1; }
-        .grid-item-img { max-height: 45px; width: auto; object-fit: contain; filter: grayscale(100%) drop-shadow(0 2px 4px rgba(0,0,0,0.1)); transition: filter 0.2s, transform 0.2s; }
-        .grid-cell:hover .grid-item-img { filter: grayscale(0%); transform: scale(1.1); }
-        .grid-outfit-name { font-size: 0.6rem; font-weight: 700; text-align: center; margin-top: auto; text-transform: uppercase; background: #000; color: #fff; padding: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.05em; }
+        .grid-stage { width: 100%; max-width: 1200px; margin: 40px auto; padding: 0 32px 60px 32px; position: relative; z-index: 10; overflow-y: auto; <?php if($viewMode !== 'grid') echo 'display: none;'; ?> }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-main); border: 1px solid var(--border-main); border-radius: 12px; overflow: hidden; width: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .grid-header-cell { background: var(--bg-main); text-align: center; padding: 16px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+        .grid-cell { background: var(--bg-panel); min-height: 160px; padding: 16px; display: flex; flex-direction: column; transition: background-color 0.2s; cursor: pointer; }
+        .grid-cell:hover { background: var(--bg-main); }
+        .grid-cell.today { background: var(--bg-main); box-shadow: inset 0 0 0 2px var(--accent-solid); }
+        .grid-date { font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px; text-align: right; }
+        .grid-items { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; flex-grow: 1; padding-bottom: 8px; }
+        .grid-item-img { max-height: 55px; width: auto; object-fit: contain; filter: grayscale(100%) drop-shadow(0 2px 4px rgba(0,0,0,0.1)); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .grid-cell:hover .grid-item-img { filter: grayscale(0%); transform: scale(1.2); z-index: 5; position: relative; }
+        .grid-outfit-name { font-size: 0.65rem; font-weight: 800; text-align: center; margin-top: auto; text-transform: uppercase; background: var(--accent-solid); color: var(--accent-text); padding: 6px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.05em; }
 
-        /* STRICT DARK MODE INVERSION */
+        /* STRICT DARK MODE */
         body.dark-mode { background-color: #0a0a0a; color: #ffffff; }
         body.dark-mode .topnav, body.dark-mode .control-panel, body.dark-mode .slab, 
         body.dark-mode .slab-footer, body.dark-mode .grid-header-cell, body.dark-mode .grid-cell { background-color: #0a0a0a; border-color: #333333; color: #ffffff; }
-        body.dark-mode .brand, body.dark-mode .theme-btn:hover, body.dark-mode .topnav a:hover, body.dark-mode .topnav a.active, body.dark-mode .slab-day, body.dark-mode .dynamic-category, body.dark-mode .dynamic-item-name, body.dark-mode .grid-date { color: #ffffff; }
-        body.dark-mode .topnav a, body.dark-mode .theme-btn, body.dark-mode .slab-title, body.dark-mode .default-outfit-name, body.dark-mode .grid-header-cell { color: #888888; }
+        body.dark-mode .brand, body.dark-mode .theme-btn:hover, body.dark-mode .topnav a:hover, body.dark-mode .topnav a.active, body.dark-mode .slab-day, body.dark-mode .dynamic-item-name, body.dark-mode .grid-date { color: #ffffff; }
+        body.dark-mode .topnav a, body.dark-mode .theme-btn, body.dark-mode .default-outfit-name, body.dark-mode .grid-header-cell { color: #888888; }
         body.dark-mode .nav-actions, body.dark-mode .nav-pfp, body.dark-mode .slab-header, body.dark-mode .calendar-grid { border-color: #333333; }
         body.dark-mode .clean-input, body.dark-mode .clean-select { background-color: #111111; border-color: #333333; color: #ffffff; }
         body.dark-mode .clean-input:focus, body.dark-mode .clean-select:focus { border-color: #ffffff; }
-        body.dark-mode .solid-btn { background-color: #ffffff; color: #000000; border-color: #ffffff; }
-        body.dark-mode .solid-btn:hover { background-color: #cccccc; }
         body.dark-mode .view-toggles { background: #111; border-color: #333; }
-        body.dark-mode .view-btn:hover, body.dark-mode .view-btn.active { background: #fff; color: #000; }
         body.dark-mode .grid-cell:hover { background: #1a1a1a; }
-        body.dark-mode .grid-cell.today { background: #111; box-shadow: inset 0 0 0 2px #fff; }
-        body.dark-mode .grid-outfit-name { background: #ffffff; color: #000000; }
+        body.dark-mode .grid-cell.today { background: #111; }
+        body.dark-mode .msg-success { background: #111; border-color: #333; color: #fff; }
     </style>
 </head>
-<body class="<?= $viewMode === 'grid' ? 'scrollable' : '' ?>">
+<body class="<?= $themeClass ?> <?= $viewMode === 'grid' ? 'scrollable' : '' ?>">
 
 <div class="topnav">
-    <span class="brand">Smart Wardrobe</span>
+    <span class="brand">Smart Wardrobe <?php if($themeClass === 'theme-female'): ?><sub style="font-size: 0.6rem; color: var(--accent-solid);">Women's</sub><?php endif; ?></span>
     <div class="nav-links">
         <a href="index.php">Overview</a>
-        <a href="kal.php">Kal AI</a>
         <a href="wardrobe.php">Archive</a>
         <a href="create_outfit.php">Outfits</a>
         <a href="code123.php" class="active">The Closet</a>
@@ -225,8 +263,18 @@ function formatSlabDay($dateString) { return date('l', strtotime($dateString)); 
     </form>
 </div>
 
-<?php if ($success): ?><div class="msg-bar msg-success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
-<?php if ($error): ?><div class="msg-bar msg-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+<?php if ($success): ?>
+    <div class="msg-bar msg-success">
+        <?= htmlspecialchars($success) ?>
+        <span class="close-msg" onclick="this.parentElement.style.display='none';">&times;</span>
+    </div>
+<?php endif; ?>
+<?php if ($error): ?>
+    <div class="msg-bar msg-error">
+        <?= htmlspecialchars($error) ?>
+        <span class="close-msg" onclick="this.parentElement.style.display='none';">&times;</span>
+    </div>
+<?php endif; ?>
 
 <div class="slab-stage">
     <?php 
@@ -263,7 +311,7 @@ function formatSlabDay($dateString) { return date('l', strtotime($dateString)); 
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="empty-rack">No outfit scheduled</div>
+                    <div class="empty-rack"><i class="fas fa-hanger" style="font-size: 2rem; margin-bottom: 8px;"></i> No outfit scheduled</div>
                 <?php endif; ?>
             </div>
 
@@ -275,7 +323,7 @@ function formatSlabDay($dateString) { return date('l', strtotime($dateString)); 
                             <span class="dynamic-item-name"></span>
                         <?php break; endforeach; ?>
                     <?php else: ?>
-                        <span class="default-outfit-name" style="color:#ccc;">EMPTY</span>
+                        <span class="default-outfit-name" style="color:var(--text-muted); opacity: 0.5;">EMPTY</span>
                     <?php endif; ?>
                 </div>
                 
@@ -333,7 +381,6 @@ function formatSlabDay($dateString) { return date('l', strtotime($dateString)); 
     });
     if(document.body.classList.contains('scrollable')) document.body.style.overflow = 'auto';
 
-    // GLOBAL THEME ENGINE
     const themeToggle = document.getElementById('theme-toggle');
     const currentTheme = localStorage.getItem('theme') || 'light';
     if (currentTheme === 'dark') {

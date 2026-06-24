@@ -1,17 +1,17 @@
 /* --- Global Variables & Theme Control --- */
 :root {
-    --bg: #f8fafc;
-    --surface: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border: #e2e8f0;
-    --accent: #3b82f6;
-    --accent-hover: #2563eb;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    --font-weight-light: 300;
-    --font-weight-regular: 400;
-    --font-weight-medium: 500;
-    --font-weight-semibold: 600;
+    --base-bg: #fcfcfc;
+    --base-text: #000000;
+    --base-border: #e5e5e5;
+    --primary-accent: #000000;
+    --primary-hover: #ffffff;
+}
+
+/* Female Theme Override */
+body.theme-female {
+    --base-text: #2e0219; /* Deep sleek purple/black */
+    --primary-accent: #d946ef; /* Minimalist vibrant pink/purple */
+    --base-border: #f3e8ff; /* Soft tinted border */
 }
 
 /* Dark Mode Overrides */
